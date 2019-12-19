@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kmg.sbr.backend.post.mapper.PostMapper">
+
+	<resultMap id="postResultMap" type="kmg.sbr.backend.post.dto.Post">
+		<result property="date" column="reg_date" />
+		<association property="username" column="user_id" select="kmg.sbr.backend.user.mapper.UserMapper.findUsernameById" />		
+	</resultMap>
+	
+	<resultMap id="postResultMapForComment" type="kmg.sbr.backend.post.dto.Post">
+		<result property="date" column="reg_date" />
+		<association property="username" column="user_id" select="kmg.sbr.backend.user.mapper.UserMapper.findUsernameById" />
+		<collection property="comments" column="id" javaType="java.util.List" ofType="kmg.sbr.backend.post.dto.Comment" select="kmg.sbr.backend.post.mapper.CommentMapper.findByPostId" />
+	</resultMap>
+
+	<select id="countTotal" resultType="int">
+		select count(*) from posts
+	</select>
+	
+	<select id="countByTitle" resultType="int">
+		select count(*) from posts where title like CONCAT('%',#{title},'%')
+	</select>
+	<select id="countByContent" resultType="int">
+		select count(*) from posts where content like CONCAT('%',#{content},'%')
+	</select>
+	
+	<select id="findByIndex" resultMap="postResultMap">
+		select * from posts limit #{start}, #{count}
+	</select>
+	<select id="findByTitle" resultMap="postResultMap">
+		select * from posts where title like CONCAT('%',#{title},'%') limit #{start}, #{count}
+	</select>
+	<select id="findByContent" resultMap="postResultMap">
+		select * from posts where content like CONCAT('%',#{content},'%') limit #{start}, #{count}
+	</select>
+	
+	<select id="findById" resultMap="postResultMap">
+		select * from posts where id = #{id}
+	</select>
+	<select id="findByIdForComments" resultMap="postResultMapForComment">
+		select * from posts where id = #{id}
+	</select>
+	<select id="findByUserId" resultMap="postResultMap">
+		select * from posts where user_id = #{userId}
+	</select>	
+	<insert id="save" useGeneratedKeys="true" keyProperty="id" parameterType="kmg.sbr.backend.post.dto.PostForm">
+		insert into posts(title, content, hit, reg_date, user_id) values(#{title},#{content},#{hit},now(),#{userId})
+	</insert>
+	
+	<update id="updateHit">
+		update posts set hit = #{hit} where id = #{id}
+	</update>
+	<update id="updatePost">
+		update posts set title = #{title}, content = #{content},reg_date = now() where id = #{id}
+	</update>
+	<delete id="deleteByUserId">
+		delete from posts where user_id = #{userId}
+	</delete>
+	<delete id="deleteById">
+		delete from posts where id = #{id}
+	</delete>
+</mapper>

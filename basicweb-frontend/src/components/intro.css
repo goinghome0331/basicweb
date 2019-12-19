@@ -1,0 +1,23 @@
+  
+@charset "UTF-8";
+
+.carousel-item {
+  height: 65vh;
+  min-height: 300px;
+  background: no-repeat center center scroll;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+.bg-1{
+	background : url('/img/slide1.jpg');
+}
+.bg-2{
+	background : url('/img/slide2.jpg');
+}
+.full {
+	width:100%;
+	height:100%;
+	background-size : 100% 100%;
+}

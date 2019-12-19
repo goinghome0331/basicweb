@@ -1,0 +1,28 @@
+@charset "UTF-8";
+footer {
+	position : fixed;
+	left : 0;
+	bottom : 0;
+	width : 100%; 
+}
+body{
+	padding-bottom : 60px;
+	padding-top : 54px;
+}
+.navbar-inner{
+	background-color: transparent;
+}
+.fixed-top{
+	background-color: #202020;
+}
+.fixed-top.scrolled { 
+    background-color: #202020 !important;
+  	transition: background-color 200ms linear; 
+}
+.navbar > .container > div > ul > li > a:hover {
+	background-color: #696969 !important;
+  	transition: background-color 200ms linear;
+}
+.navbar > .container > div > ul > li {
+	color : white;
+} 

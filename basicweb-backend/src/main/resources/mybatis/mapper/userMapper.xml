@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kmg.sbr.backend.user.mapper.UserMapper">
+	<resultMap id="userResultMap" type="kmg.sbr.backend.user.dto.User">
+		<result property="id" column="id" />
+		<result property="firstName" column="first_name" />
+		<result property="lastName" column="last_name" />
+		<result property="imagePath" column="image_path" />
+		<collection property="roles" column="id" javaType="java.util.List" ofType="kmg.sbr.backend.user.dto.Role" select="kmg.sbr.backend.user.mapper.RoleMapper.findByUserId"/>
+	</resultMap>
+	
+	<select id="findByUsername" resultMap="userResultMap">
+		select * from users where username = #{username}
+	</select>
+	<select id="findById" resultMap="userResultMap">
+		select * from users where id=#{id}
+	</select>
+	<select id="findUsernameById" resultType="string">
+		select username from users where id=#{id}
+	</select>
+	<insert id="save">
+		<selectKey keyProperty="id" resultType="int" order="AFTER">
+			select last_insert_id()
+		</selectKey>
+		insert into users(username, password, gender,first_name,last_name,birth) values(#{username},#{password}, #{gender},#{firstName},#{lastName},#{birth})
+	</insert>
+	
+	<delete id="delete" >
+		delete from users where id = #{userId}
+	</delete>
+	
+	<update id="updateImagePath">
+		update users set image_path = #{path} where username = #{username}
+	</update>
+	
+	<update id="updatePasswd">
+		update users set password = #{password} where username = #{username}
+	</update>
+</mapper>
