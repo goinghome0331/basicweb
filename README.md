@@ -5,14 +5,13 @@
 spring framework와 react를 이용하여 구현한 웹서비스
 사용자 인증과 간단한 CRUD(Create,Read,Update,Delete)를 제공을 구현함.
 
-## 사용도구
+## 개발환경
 
 ```
 + ECLIPSE
-+ JDK
 + MAVEN
-+ MYSQL(server)
-+ H2 DB(local)
++ Visual Studio Code
++ Nodejs
 ```
 
 ## MAVEN에서 사용한 dependency
@@ -21,6 +20,7 @@ spring framework와 react를 이용하여 구현한 웹서비스
 + spring-boot-starter-security
 + mybatis-spring-boot-starter
 + spring-boot-starter-test
++ h2
 + mysql-connector-java
 + commons-io
 ```
@@ -31,6 +31,16 @@ spring framework와 react를 이용하여 구현한 웹서비스
 ```
 + spring-boot-maven-plugin
 + maven-assembly-plugin
+```
+
+## nodejs에서 사용한 depenency
+```
++ creact-react-app에 의한 dependency
++ bootstrap
++ jquery
++ popper.js
++ axios
++ font-awesome에 의한 dependency
 ```
 
 ## 실행방법
