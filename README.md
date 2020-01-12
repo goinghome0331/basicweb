@@ -43,12 +43,15 @@ spring framework와 react를 이용하여 구현한 웹서비스
 + font-awesome에 의한 dependency
 ```
 
-## 실행방법
+## 실행하기
 
-> deployment에서 실행한다.
 ```
-+ backend : java -jar basicweb-backend.jar
-+ frontend : serve(server 역할을 할 수 있는 모듈) build
+ 1. Clone or Download 하기
+ 2. console를 통해 해당 폴더로 이동
+ 3. backend 실행하기 java -jar basicweb-backend.jar(db는 h2이다.)
+ 4-1. frontend 설치 : npm install 실행
+ 4-2. frontend 실행 : npm start 실행
+ 5. 웹 브라우저에 http://localhost:5000 실행
 ```
 
 
@@ -97,20 +100,6 @@ spring framework와 react를 이용하여 구현한 웹서비스
 + rest api에서는 토큰 방식을 주로 채택한다고 한다.(http basic, jwt 등)
 + 우선 http basic으로 구현하였으며 추후 jwt 인증방식으로 교체할 예정
 + http basic은 보안이 취약함(이유는 인증 토큰이 아이디:비밀번호를 base 64로 인코딩 한 것이기 때문이다.)
-```
-
-## 아직 미완성인 부분
-
-```
-+ react 모듈화
- - react 컴포넌트를 좀 더 세부적으로 모듈화를 통해 전체가 재렌더링을 막아야한다.(현재는 무조건 전체 재렌더링함)
-+ 테스트
- -  서버인 spring boot 테스트 중 userService만 했다.
- -  추후 service 뿐만 아니라 controller, mapper 부분을 진행할 예정
- - 클라이언트는 아직 미정
-+ logger
- - filter 부분만 적용했다. 
- - 추후에 controller, service 등에 적용할 것이다.
 ```
 
 ## 기능
@@ -197,7 +186,10 @@ spring framework와 react를 이용하여 구현한 웹서비스
 ## 추후 개선하고 싶은 사항
 
 ```
-+ react를 server side rendering 방식으로 동작하듯 설정(크롤링 될 수 있기 위해...)
++ react를 server side rendering 방식으로 동작 설정(크롤링 될 수 있기 위해...)
 + post 검색 기능
 + 다른 유저 정보 보기
++ react 컴포넌트를 좀 더 세부적으로 모듈화
++ userService 테스트만 존재. 추후 다른 service, servcontroller, mapper 테스트 필요, 클라이언트는 아직 미정
++ logger는 filter 부분만 존재. 추후에 controller, service logger 필요.
 ```
