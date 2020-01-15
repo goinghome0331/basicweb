@@ -9,7 +9,6 @@ import Signin from './components/Signin';
 import Signup from './components/Signup';
 import MyInfo from './components/MyInfo';
 import Board from './components/Board';
-import Error from './components/Error';
 import RegisterPost from './components/RegisterPost';
 import Post from './components/Post';
 import Footer from './components/templates/Footer';
@@ -39,8 +38,6 @@ class App extends Component {
           <AuthRoute path='/board' component={Board}></AuthRoute>
           <AuthRoute path='/regpost' component={RegisterPost}></AuthRoute>
           <AuthRoute path='/posts/:id' component={Post}></AuthRoute>
-          <Route path='/error' component={Error}></Route>
-          <Route component={Error}></Route>
         </Switch>
         <Footer></Footer>
       </Router>

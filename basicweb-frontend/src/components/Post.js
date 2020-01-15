@@ -1,7 +1,7 @@
 import React,{Component} from 'react';
 import {Link} from "react-router-dom"
 import RequestService from '../api/RequestService'
-import {POST_URL,ADD_COMMENT_URL,DELETE_COMMENT_URL,DELETE_POST_URL} from '../URL'
+import {POST_URL,ADD_COMMENT_URL,DELETE_COMMENT_URL,DELETE_POST_URL,GET_COMMENTS_URL} from '../URL'
 import AuthService from '../api/AuthService'
 import alt_user from '../alt_user.png'
 import { faTimes,faArrowCircleDown,faTrashAlt,faEdit,faList,faEye,faUser,faComment,faClock } from "@fortawesome/free-solid-svg-icons";
@@ -11,8 +11,6 @@ class Post extends Component {
 		super(props)
 		
 		this.state={
-			first_redered : false,
-			post_loaded : false,
 			comment_index : 1,
 			post : {
 				id : '',
@@ -20,47 +18,20 @@ class Post extends Component {
 				content : '',
 				hit : 0,
 				date : '',
-				username : '',
-				comments : [],
-				total : ''
+				username : ''
 			},
-			total_comments : [],
+			total : 0,
+			init_comments : false,
+			acc_comments : [],
 			comment : '',
 		}
-		this.image_data = []
-		this.handleSubmit = this.handleSubmit.bind(this)
-		this.handleChange = this.handleChange.bind(this)
-		this.handleClick = this.handleClick.bind(this)
-	}
-	loadPost(_comment_index){
-		var hit = false;
-		if(!this.state.first_redered) {
-			hit = true;
-		}
-		RequestService.requestGet(POST_URL+`/${this.props.match.params.id}`,{ index : _comment_index,rendered:hit})
-		.then((response)=>{
-			console.log(response)
-			if(response.data.comments === null && this.state.first_redered){
-                alert('더 이상 댓글이 없습니다.')
-                return ;
-			}
-			var _comments;
-			if(response.data.comments === null){
-				_comments = []
-			}else{
-				_comments = this.state.total_comments.concat(response.data.comments)
-			}
-			this.setState({
-				first_redered : true,
-				post_loaded : true,
-				post : response.data,
-				total_comments : _comments,
-				comment_index : _comment_index,
-			})		
 
-		}).catch(err=>{RequestService.handleError(err,this.props)})
-		
+
+		this.handleSubmit = this.handleSubmit.bind(this);
+		this.handleChange = this.handleChange.bind(this);
+		this.handleClick = this.handleClick.bind(this);
 	}
+	
 	handleChange(event){
 		this.setState({
 			[event.target.name] : event.target.value
@@ -69,38 +40,21 @@ class Post extends Component {
 	handleSubmit(event){
 		event.preventDefault()
 		if(this.state.comment.length < 4){
-			alert('4자 이상 입력해주세요.')
+			alert('4자 이상 입력해주세요.');
 			return ;
 		}
 		var formData = new FormData(event.target)
 
-		RequestService.requestPost(POST_URL + `/${this.state.post.id}` + ADD_COMMENT_URL,formData)
-		.then((response)=>{
-			console.log(response)
-			if(response.data === -1){
-				alert('처리중에 문제가 발생했습니다. 관계자에게 연락바랍니다.')
-				return ;
-			}else{
-				alert('댓글이 등록되었습니다.')
-				this.setState({
-					comment_index : 1,
-					post_loaded : false,
-					comment : '',
-					post : {
-						id : '',
-						title : '',
-						content : '',
-						hit : 0,
-						date : '',
-						username : '',
-						comments : [],
-						total : ''
-					},
-					total_comments : []
-				})
-			}
-		}).catch(err=>{RequestService.handleError(err,this.props)})
-
+		RequestService.request(POST_URL + `/${this.state.post.id}` + ADD_COMMENT_URL,formData,async (data)=>{
+			alert('댓글이 등록되었습니다.')
+			
+			this.setState({
+				comment : '',
+				init_comments : false,
+				acc_comments : [],
+				comment_index : 1
+			});
+		},'post');
 	}
 	handleClick(event,id,post){
 		event.preventDefault()
@@ -111,70 +65,71 @@ class Post extends Component {
 			url = POST_URL+`/comments/${id}`+DELETE_COMMENT_URL
 		}
 		if(window.confirm('정말 삭제하시겠습니까?')){
-			console.log(post, id, AuthService.getLoggedInUser())
-			RequestService.requestGet(url, { username: AuthService.getLoggedInUser()})
-				.then((response) => {
-					console.log(response);
-					if (response.data === -1) {
-						alert('처리중에 문제가 발생했습니다. 관계자에게 연락바랍니다.')
-						return;
-					} else if (response.data === 0) {
-						alert('잘못된 사용자가 삭제를 시도했습니다.')
-						return;
+			RequestService.request(url, { username: AuthService.getLoggedInUser()},(data)=>{
+				if (data === 0) {
+					alert('잘못된 사용자가 삭제를 시도했습니다.')
+					return;
+				} else {
+					alert('삭제가 완료되었습니다.')
+					if (post) {
+						this.props.history.push('/board')
 					} else {
-						alert('삭제가 완료되었습니다.')
-						if (post) {
-							this.props.history.push('/board')
-						} else {
-							this.setState({
-								comment_index: 1,
-								post_loaded: false,
-								comment: '',
-								post: {
-									id: '',
-									title: '',
-									content: '',
-									hit: 0,
-									date: '',
-									username: '',
-									comments: [],
-									total: ''
-								},
-								total_comments : []
-							})
-						}
-
+						this.setState({
+							comment : '',
+							init_comments : false,
+							acc_comments : [],
+							comment_index : 1
+						});
 					}
-				}).catch(err=>{RequestService.handleError(err,this.props)})
+				}
+			});
 		}
 	}
-	// async loadImages(){
-	// 	var _comments = Array.from(this.state.total_comments)
-	// 	_comments.map(await function(comment){
-	// 		if(comment.imageData === null){
-	// 			RequestService.requestGet(USER_IMAGE_URL, { 'username': comment.username })
-	// 			.then((response) => {
-	// 				console.log(response)
-	// 				comment.imageData = response.data
-	// 			})
-	// 		}
-	// 	})
-	// 			this.setState({
-	// 				total_comments : _comments,
-	// 				image_loaded : true
-	// 			})
-	// }
-    render(){
-		if(!this.state.post_loaded) {
-			this.loadPost(this.state.comment_index)
+	loadPost(){
+		RequestService.request(POST_URL+`/${this.props.match.params.id}`,{},(data)=>{
+
+			this.setState({
+				post : data,
+				acc_comments : data.commentSet.comments,
+				total : data.commentSet.total,
+				comment_index : 2,
+				init_comments : true
+			});
+		});
+	}
+	loadComments(comment_index){
+		RequestService.request(GET_COMMENTS_URL+`/${this.state.post.id}`,{index:comment_index},(data)=>{
+			console.log(data);
+			if(data.comments.length === 0){
+				alert('댓글이 더이상 없습니다.');
+			}else{
+				let added_comments = this.state.acc_comments.concat(data.comments);
+				this.setState({
+					acc_comments : added_comments,
+					init_comments : true,
+					total : data.total,
+					comment_index : this.state.comment_index
+				})
+			}
+		});
+	}
+
+	componentDidMount(){
+		this.loadPost();
+	}
+	componentDidUpdate(){
+		if(!this.state.init_comments){
+			this.loadComments(1);
 		}
+	}
+    render(){
 
 		var comments = [];
-		if(this.state.total_comments.length === 0){
+		if(this.state.acc_comments.length === 0){
 			comments.push(<div key={0} className="media border p-3">댓글이 없습니다.</div>)
 		}else{
 			
-			this.state.total_comments.map((comment)=>{
+			comments = this.state.acc_comments.map((comment)=>{
 				var deleteCommentBtn = ''
 				if(AuthService.getLoggedInUser() === comment.username){
 					deleteCommentBtn = <a href='/' className='float-right btn btn-outline-danger mt-1' onClick={(e)=>{this.handleClick(e,comment.id)}}><FontAwesomeIcon icon={faTimes} /></a>
@@ -185,7 +140,7 @@ class Post extends Component {
 				}else{
 					img = <img src={"data:image/jpg;base64,"+comment.imageData} alt="no img" className="mr-3 mt-3 rounded-circle" style={{width:'60px'}} />
 				}
-				comments.push(
+				return (
 					<div key={comment.id} className="media border p-3">
 							{img}
   						    <div className="media-body">
@@ -194,7 +149,7 @@ class Post extends Component {
 							    <p>{comment.content}</p>
   						    </div>
 					</div>
-				)
+				);
 			})
 		}
 		var deletePostBtn = '';
@@ -219,7 +174,7 @@ class Post extends Component {
 		            <div className="card">
 			            <h4 className="card-title mt-2">{this.state.post.title}{deletePostBtn}{editPostBtn}<Link to='/board' className='float-right btn btn-outline-primary mt-1' ><FontAwesomeIcon icon={faList}/></Link></h4>
 			            <header className="card-header">
-							<FontAwesomeIcon icon={faUser}/>{this.state.post.username}&nbsp;&nbsp;<FontAwesomeIcon icon={faComment}/>{this.state.post.total}&nbsp;&nbsp;<FontAwesomeIcon icon={faEye}/>{this.state.post.hit}
+							<FontAwesomeIcon icon={faUser}/>{this.state.post.username}&nbsp;&nbsp;<FontAwesomeIcon icon={faComment}/>{this.state.total}&nbsp;&nbsp;<FontAwesomeIcon icon={faEye}/>{this.state.post.hit}
 			                <p className="float-right"><FontAwesomeIcon icon={faClock}/>{this.state.post.date}</p>
 		                </header>
 		                <div className="card-body">
@@ -241,11 +196,11 @@ class Post extends Component {
                             </form>
 			            </div>
 			            <div className="card-body">
-				            <h6 className="card-title mt-2"><i className="far fa-comment"></i>{this.state.post.total} Comments</h6>
+				            <h6 className="card-title mt-2"><i className="far fa-comment"></i>{this.state.total} Comments</h6>
 							{comments}
 							<div className="card-footer">
                             	<button onClick={function(e){
-									this.loadPost(this.state.comment_index+1)
+									this.loadComments(this.state.comment_index+1);
                             	}.bind(this)}className="btn btn-primary btn-block"><FontAwesomeIcon icon={faArrowCircleDown} />더보기</button>
                         </div>
 			            </div>

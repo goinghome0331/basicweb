@@ -8,43 +8,41 @@ class Board extends Component {
     constructor(props){
         super(props)
         this.state = {
-            post_loaded : false,
             index : 1,
             posts : []
         }
     }
     loadPosts(_index){
-        RequestService.requestGet(GET_POSTS_URL,{index:_index})
-        .then((response)=>{
-            console.log(response)
-            if(response.data === ''){
-                alert('더 이상 게시물이 없습니다.')
-                return ;
+        RequestService.request(GET_POSTS_URL,{index:_index},(data)=>{
+            console.log(data);
+            if(_index !== 1 && data.length===0){
+                alert('더 이상 게시물이 없습니다.');
+            }else if(data.length !== 0){
+                var _post = this.state.posts.concat(data)
+                 this.setState({
+                    posts : _post,
+                    index : _index
+                })
             }
-            var _post = this.state.posts.concat(response.data)
-            this.setState({
-                post_loaded : true,
-                posts : _post,
-                index : _index,
-            })
-        }).catch(err=>{RequestService.handleError(err,this.props)})
+        });
+    }
+    componentDidMount(){
+        this.loadPosts(1);
     }
     render(){
-        if(!this.state.post_loaded)
-            this.loadPosts(this.state.index)
         var toc = [];
         if(this.state.posts.length === 0){
             toc.push(<tr key={1}><td colSpan="4">게시 글이 없습니다.</td></tr>)
         }else{
-            this.state.posts.map((post,index)=>{
-                toc.push(
+            toc = this.state.posts.map((post,index)=>{
+                return (
                     <tr key={post.id}>
 					    <td><Link to={'/posts/'+post.id}>{post.title}</Link></td>
 					    <td>{post.date}</td>
 					    <td>{post.username}</td>
                         <td>{post.hit}</td>
 				    </tr>
-                )
+                );
             })
         }
         

@@ -1,7 +1,5 @@
 package kmg.sbr.backend.controller;
 
-import java.io.IOException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,31 +25,21 @@ public class FileController {
 	FileServiceImpl fd;
 	
 	@GetMapping(value="/delete-user-image")
-	public boolean deleteImage() {
-		try {
-			AuthenticatedUser au  = UserUtil.getAuthenticatedUser();
-			us.deleteUserImage(au.getUsername());
-			return true;
-		}catch(Exception e) {
-			e.printStackTrace();
-			return false;
-		}
+	public boolean deleteImage() throws Exception{
+		AuthenticatedUser au  = UserUtil.getAuthenticatedUser();
+		us.deleteUserImage(au.getUsername());
+		return true;
 	}
 	
 	@GetMapping(value="/user-image")
-	public String getImage(@RequestParam("username") String username) throws IOException{
+	public String getImage(@RequestParam("username") String username) throws Exception{
 		User user = us.findByUsername(username);
 		return fd.getBase64DataOfImage(user.getImagePath());
 	}
 	
 	@PostMapping(value="/update-user-image")
-	public String updateUserImage(@RequestParam(value="file") MultipartFile file) {
+	public String updateUserImage(@RequestParam(value="file") MultipartFile file) throws Exception {
 		AuthenticatedUser au  = UserUtil.getAuthenticatedUser();
-		try {
-			return us.updateUserImage(au.getUsername(),file);
-		}catch(Exception e) {
-			e.printStackTrace();
-			return null;
-		}
+		return us.updateUserImage(au.getUsername(),file);
 	}
 }

@@ -53,16 +53,12 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public User findByUsername(String username) {
-		try {
-			User user = um.findByUsername(username);
-			if (user == null)
-				return null;
-			user.setPassword("");
-			return user;
-		} catch (Exception e) {
+	public User findByUsername(String username) throws Exception{
+		User user = um.findByUsername(username);
+		if (user == null)
 			return null;
-		}
+		user.setPassword("");
+		return user;
 	}
 
 	@Transactional(rollbackFor=Exception.class)

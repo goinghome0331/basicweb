@@ -12,9 +12,7 @@ window.$ = window.jQuery = jQuery;
 
 
 const PASSWORD_MESSAGE1 = '비밀번호는 기본적으로 8자 이상입니다.';
-const PASSWORD_MESSAGE2 = '처리중에 문제가 발생했습니다. 관계자에게 연락바랍니다.';
-const PASSWORD_MESSAGE3 = '현재 비밀번호가 일치하지 않습니다.';
-
+const PASSWORD_MESSAGE2 = '현재 비밀번호가 일치하지 않습니다.';
 class MyInfo extends Component {
 	constructor(props){
 		super(props)
@@ -26,7 +24,6 @@ class MyInfo extends Component {
 			lastName : '',
 			birth : '',
 			image_path : '',
-			info_loaded : false,
 			image_loaded : true,
 			image_data : '',
 			file_path : '',
@@ -37,9 +34,10 @@ class MyInfo extends Component {
 		}
 		
 		this.form = []
-		this.handleSubmit = this.handleSubmit.bind(this)
-		this.handleChange = this.handleChange.bind(this)
-		// this.handleError = this.handleError.bind(this)
+		this.handleSubmit = this.handleSubmit.bind(this);
+		this.handleChange = this.handleChange.bind(this);
+		this.loadMyInfo = this.loadMyInfo.bind(this);
+		this.loadMyImage = this.loadMyImage.bind(this);
 	}
 	
 	handleSubmit(event){
@@ -54,15 +52,14 @@ class MyInfo extends Component {
 			}
 
 			if(window.confirm('정말 변경하시겠습니까?')){
-					formData.append('username', this.me)
-					RequestService.requestPostForMultipart(UPDATE_USER_IMAGE_URL, formData)
-						.then((response) => {
-							this.setState({
-								image_loaded: false,
-								image_path : response.data,
-								file_path: 'C:\\fakepath\\' + path.basename(response.data)
-							})
-						}).catch(err=>{RequestService.handleError(err,this.props)})
+					formData.append('username', this.me);
+					RequestService.request(UPDATE_USER_IMAGE_URL, formData,(data)=>{
+						this.setState({
+							image_loaded: false,
+							image_path : data,
+							file_path: 'C:\\fakepath\\' + path.basename(data)
+						});
+					},'post','multipart/form-data');
 			}
 		}else if(this.form[1] === event.target){
 			
@@ -87,56 +84,44 @@ class MyInfo extends Component {
 				})
 				return ;
 			}
-			var formData = new FormData(this.form[1]);
-			RequestService.requestPost(UPDATE_USER_PASSWORD_URL,formData)
-			.then((response)=>{
-				if(response.data === -1){
-					alert(PASSWORD_MESSAGE2)
+			formData = new FormData(this.form[1]);
+			RequestService.request(UPDATE_USER_PASSWORD_URL,formData,(data)=>{
+				if(data === 0){
+					alert(PASSWORD_MESSAGE2);
 					this.setState({
 						currentPassword : '',
-						newPassword : '',
-						newPasswordConfirm : ''
-					})
-				}else if(response.data === 0){
-					alert(PASSWORD_MESSAGE3);
-					this.setState({
-						currentPassword : '',
-					})
-				}else if(response.data === 1){
+					});
+				}else if(data === 1){
 					alert('변경이 완료되었습니다.')
 					AuthService.registerSuccessfulLogin(AuthService.getLoggedInUser(),this.state.newPassword);
 					this.setState({
 						currentPassword : '',
 						newPassword : '',
 						newPasswordConfirm : ''
-					})
+					});
 					window.$('#passwdUpadteModal').modal('hide');
 				}
-			}).catch(err=>{RequestService.handleError(err,this.props)})
+			},'post');
 		}else if(this.form[2] === event.target){
 			if(this.state.deletePassword < 8){
 				alert(PASSWORD_MESSAGE1);
 			}
 			if(window.confirm('정말 삭제하시겠습니까?')){
-				var formData = new FormData(this.form[2]);
-				RequestService.requestPost(DELETE_USER_URL, formData)
-					.then((response) => {
-						if (response.data === -1) {
-							alert(PASSWORD_MESSAGE2)
-							return;
-						} else if (response.data === 0) {
-							alert(PASSWORD_MESSAGE3);
-							this.setState({
-								deletePassword: ''
-							})
-							return;
-						} else if (response.data === 1) {
-							alert('삭제가 완료되었습니다.')
-							AuthService.logout()
-							window.$('#deleteUserModal').modal('hide')
-							this.props.history.push('/')
-						}
-					}).catch(err=>{RequestService.handleError(err,this.props)})
+				formData = new FormData(this.form[2]);
+				RequestService.request(DELETE_USER_URL, formData,(data)=>{
+					if (data === 0) {
+						alert(PASSWORD_MESSAGE2);
+						this.setState({
+							deletePassword: ''
+						})
+						return;
+					} else if (data === 1) {
+						alert('삭제가 완료되었습니다.')
+						AuthService.logout()
+						window.$('#deleteUserModal').modal('hide')
+						this.props.history.push('/')
+					}
+				},'post');
 			}
 		}
 		
@@ -147,55 +132,47 @@ class MyInfo extends Component {
 			[event.target.name] : event.target.value
 		})
 	}
-	loadMyInfo(){
-		RequestService.requestGet(USER_INFO_URL,{'username':this.me})
-		.then((response)=>{
-			console.log(response)
-			if(response.data === ''){
-				alert(PASSWORD_MESSAGE2)
-				return ;
-			}else{
-				this.setState({
-					username : response.data.username,
-					gender : response.data.gender,
-					firstName : response.data.firstName,
-					lastName : response.data.lastName,
-					birth : response.data.birth,
-					image_path : response.data.imagePath === null ? '' : response.data.imagePath,
-					info_loaded : true,
-					image_loaded : false,
-				})
-			}
-		}).catch(err=>{RequestService.handleError(err,this.props)})
-	}
-	loadMyImage(){
-		RequestService.requestGet(USER_IMAGE_URL,{'username':this.me})
-		.then((response)=>{
-			console.log(response)	
-			var _file_path = this.state.image_path === '' ? this.state.image_path : 'C:\\fakepath\\'+path.basename(this.state.image_path);
+	async loadMyInfo(){
+		await RequestService.request(USER_INFO_URL,{'username':this.me},(data)=>{
 			this.setState({
-				image_data : response.data,
-				image_loaded : true,
-				file_path : _file_path
+				username : data.username,
+				gender : data.gender,
+				firstName : data.firstName,
+				lastName : data.lastName,
+				birth : data.birth,
+				image_path : data.imagePath === null ? '' : data.imagePath,
+				image_loaded : false
 			})
-		}).catch(err=>{RequestService.handleError(err,this.props)})
+		});
 	}
-	render(){
-		if(!this.state.info_loaded){
-			this.loadMyInfo()
-		}
+	async loadMyImage(){
+		
+		await RequestService.request(USER_IMAGE_URL,{'username':this.me},(data)=>{
+			var _file_path = this.state.image_path === '' ? this.state.image_path : 'C:\\fakepath\\' + path.basename(this.state.image_path);
+			this.setState({
+				image_data: data,
+				image_loaded: true,
+				file_path: _file_path
+			});
+		});
+	}
+
+	componentDidMount(){
+		this.loadMyInfo();
+	}
+	componentDidUpdate(){
 		if(!this.state.image_loaded){
 			this.loadMyImage();
 		}
+	}
+	render(){
 		var img;
-		if(this.state.info_loaded && this.state.image_loaded){
-			
+		if(this.state.image_loaded){
 			if(this.state.image_data === ''){
 				img = <img alt="이미지 없음" className="mx-auto d-block" src={alt_user} width="100px" height="100px" />
 			}else{
 				img = <img alt="이미지 없음" className="mx-auto d-block" src={"data:image/jpg;base64,"+this.state.image_data} width="100px" height="100px" />
 			}
-			
 		}else{
 			img = <img alt="이미지 없음" className="mx-auto d-block" src={this.state.image_path} width="100px" height="100px" />
 		}
@@ -234,18 +211,15 @@ class MyInfo extends Component {
 													alert('기본 이미지는 삭제할 수 없습니다.')
 													return ;
 												}
-												RequestService.requestGet(DELETE_USER_IMAGE_URL)
-													.then((response) => {
-														if(response.data){
-															this.setState({
-																image_loaded: false,
-																image_path: '',
-																file_path: '',
-															})
-														}else{
-															alert('삭제되지 않았습니다. 다시한번 시도하세요.')
-														}	
-													}).catch(err=>{RequestService.handleError(err,this.props)})
+												RequestService.request(DELETE_USER_IMAGE_URL,{},(data)=>{
+													if(data){
+														this.setState({
+															image_loaded: false,
+															image_path: '',
+															file_path: '',
+														})
+													}
+												});
 											}
 										}.bind(this)}>제거</a>
 				                    </div>

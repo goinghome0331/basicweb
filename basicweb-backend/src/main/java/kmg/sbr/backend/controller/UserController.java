@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import kmg.sbr.backend.Result;
 import kmg.sbr.backend.user.dto.AuthenticatedUser;
 import kmg.sbr.backend.user.dto.User;
 import kmg.sbr.backend.user.service.UserService;
@@ -20,29 +21,18 @@ public class UserController {
 	UserService us;
 	
 	@GetMapping(value="/info")
-	public User getUserInfo(@RequestParam String username) {
+	public User getUserInfo(@RequestParam String username) throws Exception{
 		return us.findByUsername(username);
 	}
 	@PostMapping(value="/update-password")
 	public int updatePassword(@RequestParam("currentPassword") String currentPassword,
-								 @RequestParam("newPassword") String newPassword) {
+								 @RequestParam("newPassword") String newPassword) throws Exception{
 		AuthenticatedUser au = UserUtil.getAuthenticatedUser();
-		try {
-			return us.updateUserPasswd(au.getUsername(), currentPassword, newPassword);
-		}catch(Exception e) {
-			e.printStackTrace();
-			return -1;
-		}
+		return us.updateUserPasswd(au.getUsername(), currentPassword, newPassword);
 	}
-	
 	@PostMapping(value="/delete-user")
-	public int deleteUser(@RequestParam("deletePassword") String password) {
+	public int deleteUser(@RequestParam("deletePassword") String password) throws Exception{
 		AuthenticatedUser au = UserUtil.getAuthenticatedUser();
-		try {
-			return us.deleteUserInfo(au.getUsername(), password);
-		}catch(Exception e) {
-			e.printStackTrace();
-			return -1;
-		}
+		return us.deleteUserInfo(au.getUsername(), password);
 	}
 }

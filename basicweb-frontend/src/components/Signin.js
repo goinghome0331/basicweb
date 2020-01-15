@@ -2,7 +2,7 @@ import React,{Component} from 'react';
 import AuthService from '../api/AuthService';
 import './signin.css';
 import {Link} from "react-router-dom"
-import { ERROR_401_MESSAGE, ERROR_CONN_MESSAGE } from '../Error';
+
 const SAVED_USERNAME = 'savedUserName';
 class Signin extends Component {
 
@@ -11,7 +11,8 @@ class Signin extends Component {
 		
 		this.errMsg = [
 			'아이디나 비밀번호가 일치하지 않습니다',
-			'서버에 연결되지 않고 있습니다.'
+			'서버에 연결되지 않고 있습니다.',
+			'처리중에 문제가 발생했습니다. 관계자에게 연락바랍니다.'
 		]
 		var _username = localStorage.getItem(SAVED_USERNAME)
 		this.state = {
@@ -39,45 +40,34 @@ class Signin extends Component {
 			checked : event.target.checked
 		})
 	}
-	handleSubmit(event){
+	async handleSubmit(event){
 		event.preventDefault();
-		AuthService
-			.executeBasicAuthService(this.state.username, this.state.password)
-            .then((response) => {
-				if(response.data === -1){
-					alert('처리중에 문제가 발생했습니다. 관계자에게 연락바랍니다.')
-					return ;
-				}
-
-				console.log(this.state.checked)
-				if(this.state.checked)
+		let result = await AuthService.executeBasicAuthService(this.state.username, this.state.password)
+		console.log(result);
+		switch(result){
+			case -1 :
+				if (this.state.checked)
 					localStorage.setItem(SAVED_USERNAME, this.state.username);
 				else
 					localStorage.removeItem(SAVED_USERNAME);
-				AuthService.registerSuccessfulLogin(this.state.username,this.state.password)
+				AuthService.registerSuccessfulLogin(this.state.username, this.state.password)
 				this.setState({
-					username : '',
-					password : '',
-					loginFailed : false,
-					failCode : -1
+					username: '',
+					password: '',
+					loginFailed: false,
+					failCode: -1
 				})
-				this.props.history.push('/')
-            }).catch((err) => {
-				
-				var _failCode = -1;
-				if(err.message === ERROR_401_MESSAGE){
-					_failCode = 0
-				}else if(err.message === ERROR_CONN_MESSAGE){
-					_failCode = 1
-				}
+				this.props.history.push('/');
+				break;
+			default :
 				this.setState({
-					username : '',
-					password : '',
-					loginFailed : true,
-					failCode : _failCode
-				})
-            })
-		
+					username: '',
+					password: '',
+					loginFailed: true,
+					failCode: result
+				});
+				break;
+		}
 	}
 	renderError(){
 		if(this.state.loginFailed){

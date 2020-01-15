@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import kmg.sbr.backend.file.FileService;
 import kmg.sbr.backend.post.dto.Comment;
 import kmg.sbr.backend.post.dto.CommentForm;
+import kmg.sbr.backend.post.dto.CommentSet;
 import kmg.sbr.backend.post.dto.ContentSet;
 import kmg.sbr.backend.post.dto.Post;
 import kmg.sbr.backend.post.dto.PostForm;
@@ -54,35 +55,64 @@ public class PostServiceImpl implements PostService {
 	
 	@Transactional(rollbackFor=Exception.class)
 	@Override
-	public Post getPostById(int id, int index,boolean rendered) throws Exception{
+	public Post getPostById(int id) throws Exception{
 		Post post = pm.findById(id);
-		if(rendered) {
-			post.setHit(post.getHit()+1);
-			pm.updateHit(id, post.getHit());
-		}
+		post.setHit(post.getHit()+1);
+		pm.updateHit(id, post.getHit());
 		
 		ContentSet cs = new ContentSet();
-		cs.setTotal(cm.countByPostId(id), index,true);
-		post.setTotal(cs.getTotal());
+		cs.setTotal(cm.countByPostId(id), 1,true);
+		
 		List<Comment> comments = cm.findByPostId(id, cs.getBsi(), cs.getCic());
-		if(comments.isEmpty()) {
-			post.setComments(null);
-		}else {
-			HashMap<String,String> map = new HashMap<String,String>();
-			Iterator<Comment> it = comments.iterator();
-			while(it.hasNext()) {
-				Comment c = it.next();
-				User u = um.findByUsername(c.getUsername());
-				String imageData = map.get(u.getImagePath());
-				if(imageData == null) {
-					imageData = fs.getBase64DataOfImage(u.getImagePath());
-					map.put(u.getImagePath(),imageData);
-				}
-				c.setImageData(imageData);
+		
+		
+		HashMap<String,String> map = new HashMap<String,String>();
+		Iterator<Comment> it = comments.iterator();
+		while(it.hasNext()) {
+			Comment c = it.next();
+			User u = um.findByUsername(c.getUsername());
+			String imageData = map.get(u.getImagePath());
+			if(imageData == null) {
+				imageData = fs.getBase64DataOfImage(u.getImagePath());
+				map.put(u.getImagePath(),imageData);
 			}
-			post.setComments(comments);
+			c.setImageData(imageData);
 		}
+		
+		CommentSet commentSet = new CommentSet();
+		commentSet.setTotal(cs.getTotal());
+		commentSet.setComments(comments);
+		post.setCommentSet(commentSet);
 		return post;
+	}
+	@Transactional(rollbackFor=Exception.class)
+	@Override
+	public CommentSet getComments(int id, int index) throws Exception{
+		ContentSet cs = new ContentSet();
+		cs.setTotal(cm.countByPostId(id), index,true);
+		List<Comment> comments = cm.findByPostId(id, cs.getBsi(), cs.getCic());
+		HashMap<String,String> map = new HashMap<String,String>();
+		Iterator<Comment> it = comments.iterator();
+		while(it.hasNext()) {
+			Comment c = it.next();
+			User u = um.findByUsername(c.getUsername());
+			String imageData = map.get(u.getImagePath());
+			if(imageData == null) {
+				imageData = fs.getBase64DataOfImage(u.getImagePath());
+				map.put(u.getImagePath(),imageData);
+			}
+			c.setImageData(imageData);
+		}
+		
+		CommentSet commentSet = new CommentSet();
+		commentSet.setTotal(cs.getTotal());
+		commentSet.setComments(comments);
+		return commentSet;
+	}
+	
+	@Override
+	public Comment getCommentById(int id) throws Exception{
+		return cm.findById(id);
 	}
 	@Transactional(rollbackFor=Exception.class)
 	@Override
@@ -95,6 +125,7 @@ public class PostServiceImpl implements PostService {
 		cm.save(comment);
 		return comment.getId();
 	}
+	
 	@Transactional(rollbackFor=Exception.class)
 	@Override
 	public int savePost(String username, String title, String content) throws Exception{

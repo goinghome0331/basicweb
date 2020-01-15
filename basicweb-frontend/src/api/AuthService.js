@@ -1,26 +1,25 @@
 import axios from 'axios'
-
+import { ERROR_401_MESSAGE, ERROR_CONN_MESSAGE } from '../Error';
 const AUTHENTICATED_USER = 'authenticatedUser'
 const SESSION_TOKEN = 'session_token';
 class AuthService {
-    // test(){
-    //     return axios.get('http://localhost:8080/test');
-    // }
-    // testPost(t1, t2){
-    //     return axios.post('http://localhost:8080/signin',{
-    //         auth : {
-    //             username : t1,
-    //             password : t2
-    //         }
-    //     });
-    // }
     executeBasicAuthService(username, password) {
         return axios.get('http://localhost:8080/signin',
             { 
                 headers: { Authorization: this.createBasicAuthToken(username, password) } 
             }
               
-        )
+        ).then(response=>{
+            return -1;
+        }).catch(err=>{
+            var _failCode = 2;
+			if(err.message === ERROR_401_MESSAGE){
+				_failCode = 0;
+			}else if(err.message === ERROR_CONN_MESSAGE){
+				_failCode = 1;
+			}
+            return _failCode;
+        })
     }
 
     createBasicAuthToken(username, password) {

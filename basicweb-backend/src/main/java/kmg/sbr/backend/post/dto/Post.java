@@ -10,19 +10,11 @@ public class Post {
 	private int hit;
 	private Date date;
 	private String username;
-	private List<Comment> comments;
-	private int total;
+	private CommentSet commentSet;
 	
 	public Post() {}
 
-	public int getTotal() {
-		return total;
-	}
-
-	public void setTotal(int total) {
-		this.total = total;
-	}
-
+	
 	public static Builder getBuiler() {
 		return new Builder();
 	}
@@ -33,6 +25,17 @@ public class Post {
 	public void setId(int id) {
 		this.id = id;
 	}
+	
+	
+	public CommentSet getCommentSet() {
+		return commentSet;
+	}
+
+
+	public void setCommentSet(CommentSet commentSet) {
+		this.commentSet = commentSet;
+	}
+
 
 	public String getTitle() {
 		return title;
@@ -41,16 +44,7 @@ public class Post {
 	public void setTitle(String title) {
 		this.title = title;
 	}
-
-
-
-	public List<Comment> getComments() {
-		return comments;
-	}
-
-	public void setComments(List<Comment> comments) {
-		this.comments = comments;
-	}
+	
 
 	public String getContent() {
 		return content;
@@ -116,17 +110,6 @@ public class Post {
 			return post;
 		}
 	}
-
-
-
-	@Override
-	public String toString() {
-		return "Post [id=" + id + ", title=" + title + ", content=" + content + ", hit=" + hit + ", date=" + date
-				+ ", username=" + username + ", comments=" + comments + "]";
-	}
-
-
-
 
 	
 	

@@ -26,15 +26,14 @@ class Signup extends Component {
 		for(var i = 2005 ; i >= 1910; i--)
 			this.yearData.push(i)
 
-		for(var i = 1; i <= 12 ; i++)
+		for(i = 1; i <= 12 ; i++)
 			this.monthData.push(i)
 
-		for(var i = 1; i <= 31 ; i++)
+		for(i = 1; i <= 31 ; i++)
 			this.dayData.push(i)
 
 	}
 	handleInputChange(event){
-		console.log([event.target.name],event.target.value)
 		this.setState({
 			[event.target.name] : event.target.value
 		})
@@ -56,22 +55,14 @@ class Signup extends Component {
 
 		// form 데이터 보내기
 		var formData = new FormData(event.target)
-		RequestService.requestPostForMultipart(SINGUP_URL,formData)
-		.then((response)=>{
-			console.log(response);
-
-			if(response.data === -1){
-				alert('처리중에 문제가 발생했습니다. 관계자에게 연락바랍니다.')
-				return ;
-			}else if(response.data === 0){
-				alert('이미 존재하는 아이디입니다.')
-				return ;
-			}else if(response.data === 1){
-				alert('가입이 완료되었습니다.')
-				this.props.history.push('/signin')
+		RequestService.request(SINGUP_URL,formData,(data)=>{
+			if(data === 0){
+				alert('이미 존재하는 아이디입니다.');
+			}else if(data === 1){
+				alert('가입이 완료되었습니다.');
+				this.props.history.push('/signin');
 			}
-		})
-		
+		},'post','multipart/form-data');
 	}
     render(){
         return (

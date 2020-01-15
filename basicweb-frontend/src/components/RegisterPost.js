@@ -27,7 +27,6 @@ class RegisterPost extends Component {
         }
         this.handleChange = this.handleChange.bind(this)
         this.handleSubmit = this.handleSubmit.bind(this)
-        console.log(this.props.location.query)
     }
     handleChange(event){
         this.setState({
@@ -40,24 +39,16 @@ class RegisterPost extends Component {
         if(this.state.title < 1){
             alert('제목은 1글자 이상입니다.')
             return ;
-        }else if(this.state.comment < 1){
+        }else if(this.state.content < 1){
             alert('내용은 1글자 이상입니다.')
             return ;
         }
 
         var formData = new FormData(event.target)
-        RequestService.requestPost(ADD_POST_URL,formData)
-        .then((response)=>{
-            console.log(response)
-
-            if(response.data === -1){
-                alert('처리중에 문제가 발생했습니다. 관계자에게 연락바랍니다.')
-                return ;
-            }else{
-                alert('글이 등록되었습니다.')
-                this.props.history.push(`/posts/${response.data}`)
-            }
-        }).catch(err=>{RequestService.handleError(err,this.props)})
+        RequestService.request(ADD_POST_URL,formData,(data)=>{
+            alert('글이 등록되었습니다.')
+            this.props.history.push(`/posts/${data}`)
+        },'post');
     }
     render(){
        return (
