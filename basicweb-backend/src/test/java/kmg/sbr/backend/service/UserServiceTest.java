@@ -20,11 +20,9 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -39,6 +37,7 @@ import kmg.sbr.backend.user.dto.UserForm;
 import kmg.sbr.backend.user.mapper.UserMapper;
 import kmg.sbr.backend.user.service.RoleService;
 import kmg.sbr.backend.user.service.UserServiceImpl;
+
 
 @RunWith(SpringRunner.class)
 @TestPropertySource(properties="file.home-dir=${java.io.tmpdir}basicweb/")
@@ -95,9 +94,6 @@ public class UserServiceTest {
 		user.setRoles(roles);
 		
 		when(userMapper.findByUsername(TEST_USERNAME)).thenReturn(user);
-		// BCryptPasswordEncoder
-		// 12345678 : b$2a$10$LKeAYfCVkWkZG57crx7M6ObK6z4rJthrHyaKkkZQFXJ4DLqe.usq2
-		// asdfasdf : $2a$10$LvOlpNNjt9ElTE2.hk1/bOwBxjp3NoEA35hgYt0EtYbUZNBXY/Fue
 	}
 	
 	@Test
@@ -109,10 +105,11 @@ public class UserServiceTest {
 		verify(userMapper).findByUsername(TEST_USERNAME);
 	}
 	
-	@Test(expected=Exception.class)
-	public void testLoadUserIfExceptionExist() {
-		userService.loadUserByUsername("kmgeu123");
-		verify(userMapper).findByUsername("kmgeu123");
+	@Test
+	public void testLoadUserIfNotExist() {
+		UserDetails ud = userService.loadUserByUsername(TEST_NEW_USERNAME);
+		verify(userMapper).findByUsername(TEST_NEW_USERNAME);
+		assertTrue(ud==null);
 	}
 	
 	

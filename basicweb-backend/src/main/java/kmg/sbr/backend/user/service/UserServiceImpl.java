@@ -1,5 +1,6 @@
 package kmg.sbr.backend.user.service;
 
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
@@ -7,12 +8,12 @@ import java.util.List;
 
 import org.jboss.logging.Logger;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import kmg.sbr.backend.exception.DAORuntimeException;
 import kmg.sbr.backend.file.FileInfo;
 import kmg.sbr.backend.file.FileService;
 import kmg.sbr.backend.post.service.PostService;
@@ -43,17 +44,17 @@ public class UserServiceImpl implements UserService {
 	
 	
 	@Override
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+	public UserDetails loadUserByUsername(String username)throws DAORuntimeException{
 		User user = um.findByUsername(username);
 
 		if (user == null) {
-			throw new UsernameNotFoundException(username + " : not founded");
+			return null;
 		}
 		return new AuthenticatedUser(user.getUsername(), user.getPassword(), user.getRoles());
 	}
 
 	@Override
-	public User findByUsername(String username) throws Exception{
+	public User findByUsername(String username) throws DAORuntimeException{
 		User user = um.findByUsername(username);
 		if (user == null)
 			return null;
@@ -61,9 +62,9 @@ public class UserServiceImpl implements UserService {
 		return user;
 	}
 
-	@Transactional(rollbackFor=Exception.class)
+	@Transactional(rollbackFor= {IOException.class,DAORuntimeException.class})
 	@Override
-	public String updateUserImage(String username, MultipartFile file) throws Exception {
+	public String updateUserImage(String username, MultipartFile file) throws IOException, DAORuntimeException{
 		FileInfo fileInfo; 
 		
 		fileInfo = fs.getPath(file);
@@ -74,9 +75,9 @@ public class UserServiceImpl implements UserService {
 		return fileInfo.getHalfPath();
 	}
 
-	@Transactional(rollbackFor=Exception.class)
+	@Transactional(rollbackFor=DAORuntimeException.class)
 	@Override
-	public int updateUserPasswd(String username, String currentPassword, String newPassword) throws Exception{
+	public int updateUserPasswd(String username, String currentPassword, String newPassword) throws DAORuntimeException{
 		User user = um.findByUsername(username);
 		if (pe.matches(currentPassword, user.getPassword())) {
 			um.updatePasswd(username, pe.encode(newPassword));
@@ -87,9 +88,9 @@ public class UserServiceImpl implements UserService {
 
 	}
 
-	@Transactional(rollbackFor=Exception.class)
+	@Transactional(rollbackFor= {IOException.class,DAORuntimeException.class})
 	@Override
-	public int deleteUserInfo(String username, String password) throws Exception{
+	public int deleteUserInfo(String username, String password) throws IOException,DAORuntimeException{
 		User user = um.findByUsername(username);
 		
 		
@@ -107,17 +108,17 @@ public class UserServiceImpl implements UserService {
 		return 1;
 	}
 
-	@Transactional(rollbackFor=Exception.class)
+	@Transactional(rollbackFor= {IOException.class,DAORuntimeException.class})
 	@Override
-	public void deleteUserImage(String username) throws Exception{
+	public void deleteUserImage(String username) throws IOException,DAORuntimeException{
 		String filePath = um.findByUsername(username).getImagePath();
 		um.updateImagePath(username, null);
 		fs.deleteFile(filePath);
 	}
 	
-	@Transactional(rollbackFor=Exception.class)
+	@Transactional(rollbackFor= {IOException.class,DAORuntimeException.class})
 	@Override
-	public int saveUserInfo(UserForm uf) throws Exception{
+	public int saveUserInfo(UserForm uf) throws IOException,DAORuntimeException{
 
 		User user = um.findByUsername(uf.getUsername());
 		if (user != null) {
@@ -134,8 +135,8 @@ public class UserServiceImpl implements UserService {
 		return 1;
 	}
 
-	@Transactional(rollbackFor=Exception.class)
-	private User save(UserForm uf, String[] roleNames) throws Exception{
+	@Transactional(rollbackFor=DAORuntimeException.class)
+	private User save(UserForm uf, String[] roleNames) throws DAORuntimeException{
 		List<Role> roles = rs.findAll();
 		
 		Iterator<Role> it = roles.iterator();

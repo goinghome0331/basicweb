@@ -42,7 +42,7 @@ class Signin extends Component {
 	}
 	async handleSubmit(event){
 		event.preventDefault();
-		let result = await AuthService.executeBasicAuthService(this.state.username, this.state.password)
+		let result = await AuthService.executeJwtAuthService(this.state.username, this.state.password)
 		console.log(result);
 		switch(result){
 			case -1 :
@@ -50,7 +50,7 @@ class Signin extends Component {
 					localStorage.setItem(SAVED_USERNAME, this.state.username);
 				else
 					localStorage.removeItem(SAVED_USERNAME);
-				AuthService.registerSuccessfulLogin(this.state.username, this.state.password)
+				
 				this.setState({
 					username: '',
 					password: '',

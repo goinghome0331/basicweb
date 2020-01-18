@@ -13,6 +13,7 @@ class Board extends Component {
         }
     }
     loadPosts(_index){
+        console.log(_index);
         RequestService.request(GET_POSTS_URL,{index:_index},(data)=>{
             console.log(data);
             if(_index !== 1 && data.length===0){

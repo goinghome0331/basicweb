@@ -1,9 +1,10 @@
 ﻿# basicweb
 
 ## 소개
-
-spring framework와 react를 이용하여 구현한 웹서비스
-사용자 인증과 간단한 CRUD(Create,Read,Update,Delete)를 제공을 구현함.
+```
+1. spring framework와 react를 이용하여 구현한 웹서비스.
+2. 사용자 인증과 간단한 CRUD(Create,Read,Update,Delete)를 제공을 구현함.
+```
 
 ## 개발환경
 
@@ -27,7 +28,7 @@ spring framework와 react를 이용하여 구현한 웹서비스
 
 ## MAVEN에서 사용한 plugin
 
-> 외부 dependency를 다운받아 만든 클래스와 하나의 jar 파일로 만들기 위해 필요
+> 외부 dependency를 다운받아 하나의 jar 파일로 만들기 위해 필요
 ```
 + spring-boot-maven-plugin
 + maven-assembly-plugin
@@ -35,12 +36,13 @@ spring framework와 react를 이용하여 구현한 웹서비스
 
 ## nodejs에서 사용한 depenency
 ```
-+ creact-react-app에 의한 dependency
++ creact-react-app에 의한 dependencies
++ react-router-dom
 + bootstrap
 + jquery
 + popper.js
 + axios
-+ font-awesome에 의한 dependency
++ font-awesome에 의한 dependencies
 ```
 
 ## 실행하기
@@ -55,52 +57,31 @@ spring framework와 react를 이용하여 구현한 웹서비스
 ```
 
 
-## 구조
-
-```
-+ 클라이언트 
- - react js로 구현
- - spa 형태
-
-+ 서버
-
- - spring boot로 구현
- -  rest api형태
-
-+ 매핑 퍼시스턴스(?) 프레임워크
- - MyBatis
-```
-
 ## react로 구현한 클라이언트 특징
 
 ```
-+ javascript는 비동기 방식으로 동작하기 때문에 network 통신과 같이 시간이 오래 걸리는 동작 처리 후 그 데이터를 재렌더링하기 위해 state 객체를 조작했다.
-+ 비동기 처리를 위해 Promise 동작 방식을 사용했다.
-+ 네트워크 통신을 위해 aixos 라이브러리 사용했다.
-+ 오류 발생시 이를 처리하기 위한 페이지를 따로 만들었다.
-+ header의 active마다 페이지를 다르게 하기 위해 Router 컴포넌트 사용
-+ react-bootstrap이 있지만 이를 사용하지는 않았다.(그래서 modal 등의 bootstrap 컴포넌트를 조작하기 위해 jquery를 사용함)
-
++ 네트워크 통신을 위해 aixos 라이브러리 사용했으며, 비동기 처리방식인 Promise, async-await 그리고 callback 방식으로 데이터를 처리했다.
++ 네트워크 통신으로 인한 재렌더링을 위해 componentDidMount, componentDidUpdate도 사용했다.
++ Header 그에 따른 컴포넌트 전환과 컴포넌트에 따른 url을 위해 react-router-dom 사용했다.
++ react-bootstrap이나 reactstraop이 있어 bootstrap 사용시 코드의 효율성은 좋지만 어차피 재렌더링되는 것은 같아 사용하지 않았다.(그래서 modal 등의 bootstrap 컴포넌트를 조작하기 위해 jquery를 사용함)
 ```
 
 ## spring boot으로 rest api를 구현한 서버 특징
 
 ```
-+ cors정책을 해결하기 위한 필터를 만들거나 설정 필요한데 필터를 만들었다.
-+ spring boot가 기본적으로 servere side redering이기 때문에 인증 실패시 리다이렉트가 된다. 따라서 이를 막아주기 위한 설정함
- - 이를 위해 AuthenticationEntrypoint,SimpleUrlAuthenticationSuccessHandler 재구현함
-  : AuthenticationEntrypoint : 인증 실패 시 401 에러를 보내고 리다이렉션 못하도록 설정해주는 컴포넌트
-  : SimpleUrlAuthenticationSuccessHandler : 인증 성공시 원래 기능의 리다이렉션해주는 컴포넌트
-+ spring security가 기본적으로 csrf를 막기 위한 동작을 하고 있는데, rest api에서는 이것이 필요 없으므로 막는 동작을 해제했다.
++ cors정책을 해결하기 위한 필터를 구현했지만 spring에서 제공하는 기능이 있어 이것으로 전환
++ spring boot가 기본적으로 servere side redering이기 때문에 인증 실패시 리다이렉트가 된다. 따라서 이를 막기 위해 AuthenticationEntrypoint 구현과 Security configuration에서 필요한 설정을 했다.
++ spring security가 기본적으로 csrf를 막기 위한 동작을 하고 있는데, rest api에서는 이것이 필요 없으므로 막는 동작을 해제했다.(안하면 동작이 제대로 안됨.)
 ```
 
 ## 인증 방식
 
 ```
-+ rest api에서는 토큰 방식을 주로 채택한다고 한다.(http basic, jwt 등)
-+ 우선 http basic으로 구현하였으며 추후 jwt 인증방식으로 교체할 예정
++ rest 서버에서는 토큰 방식을 주로 채택한다고 한다.(http basic, jwt 등)
 + http basic은 보안이 취약함(이유는 인증 토큰이 아이디:비밀번호를 base 64로 인코딩 한 것이기 때문이다.)
++ 따라서 jwt방식으로 구현함(세션을 자동으로 생성하는 것을 막았기때문에 Jwt를 위한 Filter를 만들고 이곳에서 처음 토큰이 들어왔을 때 세션을 만들었다.)
 ```
+
 
 ## 기능
 > 자신의 정보
@@ -180,10 +161,9 @@ spring framework와 react를 이용하여 구현한 웹서비스
 
 ```
 + h2 database 초기화 할 때 drop, insert sql문이 깨져서 실행되어 계속 오류가 발생한다. 여전히 이유를 알 수 없음
-+ 클라이언트 부분에 async, await 기능을 이미지 로딩 부분에 사용하려 했지만 실패했다.
 ```
 
-## 추후 개선하고 싶은 사항
+## 추후 개선하거나 추가하고 싶은 사항
 
 ```
 + react를 server side rendering 방식으로 동작 설정(크롤링 될 수 있기 위해...)

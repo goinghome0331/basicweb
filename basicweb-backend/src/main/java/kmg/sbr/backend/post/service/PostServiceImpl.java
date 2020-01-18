@@ -1,5 +1,6 @@
 package kmg.sbr.backend.post.service;
 
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import kmg.sbr.backend.exception.DAORuntimeException;
 import kmg.sbr.backend.file.FileService;
 import kmg.sbr.backend.post.dto.Comment;
 import kmg.sbr.backend.post.dto.CommentForm;
@@ -42,20 +44,19 @@ public class PostServiceImpl implements PostService {
 	private FileService fs;
 	
 	
-	@Transactional(rollbackFor=Exception.class)
 	@Override
-	public List<Post> getPostByIndex(int index) throws Exception{
+	public List<Post> getPostByIndex(int index)throws DAORuntimeException{
 		ContentSet cs = new ContentSet();
 		cs.setTotal(pm.countTotal(), index,false);
 		if(cs.getTotal() == 0) return new LinkedList<Post>();
-		List<Post> posts = pm.findByIndex(cs.getBsi(), cs.getCic());
+		List<Post> posts = pm.findByIndex(cs.getBsi(), ContentSet.PAGE_IN_BOARD);
 		posts.sort(new PostSorter());
 		return posts;
 	}
 	
-	@Transactional(rollbackFor=Exception.class)
+	@Transactional(rollbackFor= {IOException.class, DAORuntimeException.class})
 	@Override
-	public Post getPostById(int id) throws Exception{
+	public Post getPostById(int id) throws IOException, DAORuntimeException{
 		Post post = pm.findById(id);
 		post.setHit(post.getHit()+1);
 		pm.updateHit(id, post.getHit());
@@ -63,7 +64,7 @@ public class PostServiceImpl implements PostService {
 		ContentSet cs = new ContentSet();
 		cs.setTotal(cm.countByPostId(id), 1,true);
 		
-		List<Comment> comments = cm.findByPostId(id, cs.getBsi(), cs.getCic());
+		List<Comment> comments = cm.findByPostId(id, cs.getBsi(), ContentSet.COUNT_IN_PAGE);
 		
 		
 		HashMap<String,String> map = new HashMap<String,String>();
@@ -85,12 +86,12 @@ public class PostServiceImpl implements PostService {
 		post.setCommentSet(commentSet);
 		return post;
 	}
-	@Transactional(rollbackFor=Exception.class)
+	@Transactional(rollbackFor= {IOException.class, DAORuntimeException.class})
 	@Override
-	public CommentSet getComments(int id, int index) throws Exception{
+	public CommentSet getComments(int id, int index) throws IOException, DAORuntimeException{
 		ContentSet cs = new ContentSet();
 		cs.setTotal(cm.countByPostId(id), index,true);
-		List<Comment> comments = cm.findByPostId(id, cs.getBsi(), cs.getCic());
+		List<Comment> comments = cm.findByPostId(id, cs.getBsi(), ContentSet.COUNT_IN_PAGE);
 		HashMap<String,String> map = new HashMap<String,String>();
 		Iterator<Comment> it = comments.iterator();
 		while(it.hasNext()) {
@@ -110,13 +111,9 @@ public class PostServiceImpl implements PostService {
 		return commentSet;
 	}
 	
+	@Transactional(rollbackFor=DAORuntimeException.class)
 	@Override
-	public Comment getCommentById(int id) throws Exception{
-		return cm.findById(id);
-	}
-	@Transactional(rollbackFor=Exception.class)
-	@Override
-	public int saveComment(int postId, String username, String content) throws Exception{
+	public int saveComment(int postId, String username, String content) throws DAORuntimeException{
 		User user = um.findByUsername(username);
 		CommentForm comment = new CommentForm();
 		comment.setPostId(postId);
@@ -126,9 +123,9 @@ public class PostServiceImpl implements PostService {
 		return comment.getId();
 	}
 	
-	@Transactional(rollbackFor=Exception.class)
+	@Transactional(rollbackFor=DAORuntimeException.class)
 	@Override
-	public int savePost(String username, String title, String content) throws Exception{
+	public int savePost(String username, String title, String content) throws DAORuntimeException{
 		User user = um.findByUsername(username);
 		PostForm post = new PostForm();
 		post.setTitle(title);
@@ -138,32 +135,32 @@ public class PostServiceImpl implements PostService {
 		pm.save(post);
 		return post.getId();
 	}
-	@Transactional(rollbackFor=Exception.class)
+	@Transactional(rollbackFor=DAORuntimeException.class)
 	@Override
-	public int updatePost(int id, String title, String content) throws Exception{
+	public int updatePost(int id, String title, String content) throws DAORuntimeException{
 		Post post = pm.findById(id);
 		post.setTitle(title);
 		post.setContent(content);
 		pm.updatePost(post);
 		return post.getId();
 	}
-	@Transactional(rollbackFor=Exception.class)
+	@Transactional(rollbackFor=DAORuntimeException.class)
 	@Override
-	public int deleteComment(int commentId) throws Exception{
+	public int deleteComment(int commentId) throws DAORuntimeException{
 		cm.deleteById(commentId);
 		return 1;
 	}
-	@Transactional(rollbackFor=Exception.class)
+	@Transactional(rollbackFor=DAORuntimeException.class)
 	@Override
-	public int deletePost(int postId) throws Exception{
+	public int deletePost(int postId) throws DAORuntimeException{
 		cm.deleteByPostId(postId);
 		pm.deleteById(postId);
 		return 1;
 	}
 	
-	@Transactional(rollbackFor=Exception.class)
+	@Transactional(rollbackFor=DAORuntimeException.class)
 	@Override
-	public void deleteAllPostByUserId(int userId) throws Exception{
+	public void deleteAllPostByUserId(int userId) throws DAORuntimeException{
 		List<Post> posts = pm.findByUserId(userId);
 		for (Post post : posts) {
 			cm.deleteByPostId(post.getId());
@@ -171,9 +168,9 @@ public class PostServiceImpl implements PostService {
 		}
 	}
 	
-	@Transactional(rollbackFor=Exception.class)
+	@Transactional(rollbackFor=DAORuntimeException.class)
 	@Override
-	public void deleteCommentByUserId(int userId) throws Exception{
+	public void deleteCommentByUserId(int userId)throws DAORuntimeException{
 		cm.deleteByUserId(userId);
 	}
 	

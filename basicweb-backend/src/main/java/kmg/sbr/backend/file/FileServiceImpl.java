@@ -67,13 +67,13 @@ public class FileServiceImpl implements FileService{
 	}
 	
 	
-	public boolean isExist(String fileName) {
+	private boolean isExist(String fileName) {
 		Path targetPath = homePath.resolve(fileName);
 		return Files.exists(targetPath);
 	}
 	
 	
-	public boolean deleteFile(String fileName) throws Exception{
+	public boolean deleteFile(String fileName) throws IOException{
 
 		if(fileName == null) {
 			return false;
@@ -100,15 +100,15 @@ public class FileServiceImpl implements FileService{
 		return true;
 	}
 	
-	public FileInfo getPath(MultipartFile file) throws Exception{
+	public FileInfo getPath(MultipartFile file) throws IOException{
 		String fileName = StringUtils.cleanPath(file.getOriginalFilename());
 		String ret = null;
 		
 		if(UserUtil.getAuthenticatedUser() == null) {
-			throw new Exception("Authenticated user is needed to save this file" + fileName);
+			throw new IOException("Authenticated user is needed to save this file" + fileName);
 		}
 		if(fileName.contains("..")) {
-			throw new Exception("Filename contains invalid path sequence " + fileName);
+			throw new IOException("Filename contains invalid path sequence " + fileName);
 		}
 			
 		Path fullPath = null;
@@ -125,11 +125,11 @@ public class FileServiceImpl implements FileService{
 		
 		return new FileInfo(fullPath,halfPath);
 	}
-	public void storeFile(MultipartFile file, FileInfo fileInfo) throws Exception{
+	public void storeFile(MultipartFile file, FileInfo fileInfo) throws IOException{
 		Files.copy(file.getInputStream(),fileInfo.getFullPath(),StandardCopyOption.REPLACE_EXISTING);
 		logger.infof("user file upload compeleted = path : {}", fileInfo.getHalfPath());
 	}
-	public void replaceFile(String originalPath, MultipartFile targetFile,FileInfo fileInfo) throws Exception{
+	public void replaceFile(String originalPath, MultipartFile targetFile,FileInfo fileInfo) throws IOException{
 		deleteFile(originalPath);
 		storeFile(targetFile,fileInfo);
 	}

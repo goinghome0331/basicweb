@@ -27,9 +27,6 @@ class RequestService {
 
     get(_url,_params){
         return axios.get(_url,{
-            headers : {
-                'Authorization' : AuthService.getSessionToken()
-            },
             params : _params
         }).then(response=>{
             return response.data;
@@ -40,7 +37,7 @@ class RequestService {
     requestGet(_url,_params){
         return axios.get(_url,{
             headers : {
-                'Authorization' : AuthService.getSessionToken()
+                'Authorization' : AuthService.getJWTToken()
             },
             params : _params
         });
@@ -50,16 +47,16 @@ class RequestService {
         return axios.post(_url,_data,{
             headers : {
                 'Content-Type' : cType,
-                'Authorization' : AuthService.getSessionToken()
+                'Authorization' : AuthService.getJWTToken()
             },
         });
     }
 
     requestPost(_url,_data){
         return axios.post(_url,_data,{
-            headers : {
-                'Authorization' : AuthService.getSessionToken()
-            },
+            headers :{
+                'Authorization' : AuthService.getJWTToken()
+            }
         });
     }
 

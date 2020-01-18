@@ -1,17 +1,19 @@
 import axios from 'axios'
 import { ERROR_401_MESSAGE, ERROR_CONN_MESSAGE } from '../Error';
 const AUTHENTICATED_USER = 'authenticatedUser'
-const SESSION_TOKEN = 'session_token';
+const SESSION_TOKEN='session_token';
 class AuthService {
-    executeBasicAuthService(username, password) {
-        return axios.get('http://localhost:8080/signin',
+    executeJwtAuthService(username, password) {
+        return axios.post('http://localhost:8080/signin',
             { 
-                headers: { Authorization: this.createBasicAuthToken(username, password) } 
+                username,
+                password
             }
-              
         ).then(response=>{
+            this.registerSuccessfulLoginForJwt(username,response.data);
             return -1;
         }).catch(err=>{
+            console.log(err);
             var _failCode = 2;
 			if(err.message === ERROR_401_MESSAGE){
 				_failCode = 0;
@@ -22,34 +24,45 @@ class AuthService {
         })
     }
 
-    createBasicAuthToken(username, password) {
-        return 'Basic ' + window.btoa(username + ":" + password)
+    createJWTToken(token) {
+        return 'Bearer ' + token;
     }
 
-    registerSuccessfulLogin(username, password) {
-        sessionStorage.setItem(AUTHENTICATED_USER, username);
-        sessionStorage.setItem(SESSION_TOKEN, this.createBasicAuthToken(username,password));
+    registerSuccessfulLoginForJwt(username, token) {
+        sessionStorage.setItem(AUTHENTICATED_USER, username)
+        sessionStorage.setItem(SESSION_TOKEN,this.createJWTToken(token));
     }
-    registerUpdatedUser(username){
-        sessionStorage.setItem(AUTHENTICATED_USER, username);
-    }
+
+
     logout() {
         sessionStorage.removeItem(AUTHENTICATED_USER);
         sessionStorage.removeItem(SESSION_TOKEN);
     }
 
+    getJWTToken(){
+        return sessionStorage.getItem(SESSION_TOKEN);
+    }
     isUserLoggedIn() {
         let user = sessionStorage.getItem(AUTHENTICATED_USER)
         if (user === null) return false
         return true
     }
-    getSessionToken(){
-        return sessionStorage.getItem(SESSION_TOKEN)
-    }
     getLoggedInUser() {
         let user = sessionStorage.getItem(AUTHENTICATED_USER)
         if (user === null) return ''
         return user
+    }
+
+    setupAxiosInterceptors(token) {
+
+        axios.interceptors.request.use(
+            (config) => {
+                if (this.isUserLoggedIn()) {
+                    config.headers.authorization = token
+                }
+                return config
+            }
+        )
     }
 }
 
